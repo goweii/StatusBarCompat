@@ -16,6 +16,7 @@ gen/
 out/
 
 # Gradle files
+.idea/
 .gradle/
 build/
 

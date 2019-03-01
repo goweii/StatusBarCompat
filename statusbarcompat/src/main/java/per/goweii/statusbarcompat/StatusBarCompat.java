@@ -16,7 +16,7 @@ public class StatusBarCompat {
     /**
      * 设置状态栏颜色
      */
-    public static void setStatusBarColor(Window window, @ColorInt int color) {
+    public static void setColor(Window window, @ColorInt int color) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             window.setStatusBarColor(color);
         }
@@ -25,53 +25,56 @@ public class StatusBarCompat {
     /**
      * 获取状态栏高度
      */
-    public static int getStatusBarHeight(Context context) {
+    public static int getHeight(Context context) {
         int resourceId = context.getResources().getIdentifier("status_bar_height", "dimen", "android");
-        return context.getResources().getDimensionPixelSize(resourceId);
+        if (resourceId > 0) {
+            return context.getResources().getDimensionPixelSize(resourceId);
+        }
+        return 0;
     }
 
     /**
      * 设置状态栏图标主题
      */
-    public static void setStatusBarIconMode(Fragment fragment, boolean isDarkMode) {
-        createOsStatusBarCompat().setDarkIconMode(fragment, isDarkMode);
+    public static void setIconMode(Fragment fragment, boolean darkIconMode) {
+        createOsStatusBarCompat().setDarkIconMode(fragment, darkIconMode);
     }
 
     /**
      * 设置状态栏图标主题
      */
-    public static void setStatusBarIconMode(Activity activity, boolean isDarkMode) {
-        createOsStatusBarCompat().setDarkIconMode(activity, isDarkMode);
+    public static void setIconMode(Activity activity, boolean darkIconMode) {
+        createOsStatusBarCompat().setDarkIconMode(activity, darkIconMode);
     }
 
     /**
      * 设置状态栏图标主题
      */
-    public static void setStatusBarIconMode(Window window, boolean isDarkMode) {
-        createOsStatusBarCompat().setDarkIconMode(window, isDarkMode);
+    public static void setIconMode(Window window, boolean darkIconMode) {
+        createOsStatusBarCompat().setDarkIconMode(window, darkIconMode);
     }
 
     /**
      * 设置状态栏透明
      */
-    public static void transparentStatusBar(Activity activity) {
-        transparentStatusBar(activity.getWindow());
+    public static void transparent(Activity activity) {
+        transparent(activity.getWindow());
     }
 
     /**
      * 设置状态栏透明
      */
-    public static void transparentStatusBar(Fragment fragment) {
+    public static void transparent(Fragment fragment) {
         Activity activity = fragment.getActivity();
         if (activity != null) {
-            transparentStatusBar(activity);
+            transparent(activity);
         }
     }
 
     /**
      * 设置状态栏透明
      */
-    public static void transparentStatusBar(Window window) {
+    public static void transparent(Window window) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             transparentStatusBarAbove21(window);
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {

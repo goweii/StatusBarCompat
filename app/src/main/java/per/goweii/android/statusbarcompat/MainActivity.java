@@ -18,7 +18,7 @@ public class MainActivity extends AppCompatActivity {
         sc_status_bar_dark_icon.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                StatusBarCompat.setStatusBarIconMode(MainActivity.this, isChecked);
+                StatusBarCompat.setIconMode(MainActivity.this, isChecked);
             }
         });
     }
