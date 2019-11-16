@@ -28,6 +28,18 @@ public class StatusBarCompat {
         return 0;
     }
 
+    public static boolean isIconDark(Fragment fragment) {
+        return OsStatusBarCompatHolder.get().isDarkIconMode(fragment);
+    }
+
+    public static boolean isIconDark(Activity activity) {
+        return OsStatusBarCompatHolder.get().isDarkIconMode(activity);
+    }
+
+    public static boolean isIconDark(Window window) {
+        return OsStatusBarCompatHolder.get().isDarkIconMode(window);
+    }
+
     public static void setIconMode(Fragment fragment, boolean darkIconMode) {
         OsStatusBarCompatHolder.get().setDarkIconMode(fragment, darkIconMode);
     }
