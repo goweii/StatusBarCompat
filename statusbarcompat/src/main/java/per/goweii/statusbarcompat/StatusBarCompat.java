@@ -18,6 +18,7 @@ public class StatusBarCompat {
      */
     public static void setColor(Window window, @ColorInt int color) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             window.setStatusBarColor(color);
         }
     }
@@ -62,12 +63,29 @@ public class StatusBarCompat {
     }
 
     /**
+     * 去除状态栏透明
+     */
+    public static void unTransparent(Activity activity) {
+        unTransparent(activity.getWindow());
+    }
+
+    /**
      * 设置状态栏透明
      */
     public static void transparent(Fragment fragment) {
         Activity activity = fragment.getActivity();
         if (activity != null) {
             transparent(activity);
+        }
+    }
+
+    /**
+     * 去除状态栏透明
+     */
+    public static void unTransparent(Fragment fragment) {
+        Activity activity = fragment.getActivity();
+        if (activity != null) {
+            unTransparent(activity);
         }
     }
 
@@ -82,15 +100,14 @@ public class StatusBarCompat {
         }
     }
 
-    private static OsStatusBarCompat createOsStatusBarCompat(){
-        if (OsUtils.isMiui()) {
-            return new OsStatusBarCompatMiui();
-        } else if (OsUtils.isFlyme()) {
-            return new OsStatusBarCompatFlyme();
-        } else if (OsUtils.isOppo()) {
-            return new OsStatusBarCompatOppo();
-        } else {
-            return new OsStatusBarCompatDef();
+    /**
+     * 去除状态栏透明
+     */
+    public static void unTransparent(Window window) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            unTransparentStatusBarAbove21(window);
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            unTransparentStatusBarAbove19(window);
         }
     }
 
@@ -102,8 +119,34 @@ public class StatusBarCompat {
         window.setStatusBarColor(Color.TRANSPARENT);
     }
 
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private static void unTransparentStatusBarAbove21(Window window) {
+        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        int ui = window.getDecorView().getSystemUiVisibility();
+        ui = ui & ~(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+        window.getDecorView().setSystemUiVisibility(ui);
+        window.clearFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+    }
+
     @TargetApi(Build.VERSION_CODES.KITKAT)
     private static void transparentStatusBarAbove19(Window window) {
         window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+    }
+
+    @TargetApi(Build.VERSION_CODES.KITKAT)
+    private static void unTransparentStatusBarAbove19(Window window) {
+        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+    }
+
+    private static OsStatusBarCompat createOsStatusBarCompat(){
+        if (OsUtils.isMiui()) {
+            return new OsStatusBarCompatMiui();
+        } else if (OsUtils.isFlyme()) {
+            return new OsStatusBarCompatFlyme();
+        } else if (OsUtils.isOppo()) {
+            return new OsStatusBarCompatOppo();
+        } else {
+            return new OsStatusBarCompatDef();
+        }
     }
 }
