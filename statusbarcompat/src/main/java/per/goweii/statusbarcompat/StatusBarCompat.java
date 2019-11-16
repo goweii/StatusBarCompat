@@ -52,6 +52,30 @@ public class StatusBarCompat {
         OsStatusBarCompatHolder.get().setDarkIconMode(window, darkIconMode);
     }
 
+    public static void setIconDark(Fragment fragment) {
+        setIconMode(fragment, true);
+    }
+
+    public static void setIconDark(Activity activity) {
+        setIconMode(activity, true);
+    }
+
+    public static void setIconDark(Window window) {
+        setIconMode(window, true);
+    }
+
+    public static void setIconLight(Fragment fragment) {
+        setIconMode(fragment, false);
+    }
+
+    public static void setIconLight(Activity activity) {
+        setIconMode(activity, false);
+    }
+
+    public static void setIconLight(Window window) {
+        setIconMode(window, false);
+    }
+
     public static boolean isTransparent(Fragment fragment) {
         Activity activity = fragment.getActivity();
         if (activity != null) {
