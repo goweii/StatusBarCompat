@@ -12,7 +12,11 @@ import android.view.Window;
  * @date 2019/3/1
  */
 interface OsStatusBarCompat {
-    void setDarkIconMode(@NonNull Activity activity, boolean darkIconMode);
+    boolean isDarkIconMode(@NonNull Fragment fragment);
+    boolean isDarkIconMode(@NonNull Activity activity);
+    boolean isDarkIconMode(@NonNull Window window);
+
     void setDarkIconMode(@NonNull Fragment fragment, boolean darkIconMode);
+    void setDarkIconMode(@NonNull Activity activity, boolean darkIconMode);
     void setDarkIconMode(@NonNull Window window, boolean darkIconMode);
 }

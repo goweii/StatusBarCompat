@@ -7,9 +7,6 @@ import android.support.v4.app.Fragment;
 import android.view.View;
 import android.view.Window;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-
 /**
  * 描述：
  *
@@ -19,8 +16,21 @@ import java.lang.reflect.Method;
 class OsStatusBarCompatOppo implements OsStatusBarCompat {
 
     @Override
-    public void setDarkIconMode(@NonNull Activity activity, boolean darkIconMode) {
-        setDarkIconMode(activity.getWindow(), darkIconMode);
+    public boolean isDarkIconMode(@NonNull Fragment fragment) {
+        if (fragment.getActivity() != null) {
+            isDarkIconMode(fragment.getActivity());
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isDarkIconMode(@NonNull Activity activity) {
+        return isDarkIconMode(activity.getWindow());
+    }
+
+    @Override
+    public boolean isDarkIconMode(@NonNull Window window) {
+        return OppoStatusBarUtils.isDarkIconMode(window);
     }
 
     @Override
@@ -28,6 +38,11 @@ class OsStatusBarCompatOppo implements OsStatusBarCompat {
         if (fragment.getActivity() != null) {
             setDarkIconMode(fragment.getActivity(), darkIconMode);
         }
+    }
+
+    @Override
+    public void setDarkIconMode(@NonNull Activity activity, boolean darkIconMode) {
+        setDarkIconMode(activity.getWindow(), darkIconMode);
     }
 
     @Override
@@ -39,22 +54,28 @@ class OsStatusBarCompatOppo implements OsStatusBarCompat {
 
         private static final int SYSTEM_UI_FLAG_OP_STATUS_BAR_TINT = 0x00000010;
 
-        private static void setDarkIconMode(Window window, boolean darkMode) {
-            int vis = window.getDecorView().getSystemUiVisibility();
+        private static boolean isDarkIconMode(Window window) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (darkMode) {
-                    vis |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
-                } else {
-                    vis &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
-                }
+                return DefStatusBarUtils.isDarkIconMode(window);
             } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                int vis = window.getDecorView().getSystemUiVisibility();
+                return SYSTEM_UI_FLAG_OP_STATUS_BAR_TINT == (SYSTEM_UI_FLAG_OP_STATUS_BAR_TINT & vis);
+            }
+            return false;
+        }
+
+        private static void setDarkIconMode(Window window, boolean darkMode) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                DefStatusBarUtils.setDarkIconMode(window, darkMode);
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                int vis = window.getDecorView().getSystemUiVisibility();
                 if (darkMode) {
                     vis |= SYSTEM_UI_FLAG_OP_STATUS_BAR_TINT;
                 } else {
                     vis &= ~SYSTEM_UI_FLAG_OP_STATUS_BAR_TINT;
                 }
+                window.getDecorView().setSystemUiVisibility(vis);
             }
-            window.getDecorView().setSystemUiVisibility(vis);
         }
     }
 

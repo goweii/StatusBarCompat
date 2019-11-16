@@ -13,9 +13,6 @@ import android.view.WindowManager;
 
 public class StatusBarCompat {
 
-    /**
-     * 设置状态栏颜色
-     */
     public static void setColor(Window window, @ColorInt int color) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
@@ -23,9 +20,6 @@ public class StatusBarCompat {
         }
     }
 
-    /**
-     * 获取状态栏高度
-     */
     public static int getHeight(Context context) {
         int resourceId = context.getResources().getIdentifier("status_bar_height", "dimen", "android");
         if (resourceId > 0) {
@@ -34,44 +28,26 @@ public class StatusBarCompat {
         return 0;
     }
 
-    /**
-     * 设置状态栏图标主题
-     */
     public static void setIconMode(Fragment fragment, boolean darkIconMode) {
-        createOsStatusBarCompat().setDarkIconMode(fragment, darkIconMode);
+        OsStatusBarCompatHolder.get().setDarkIconMode(fragment, darkIconMode);
     }
 
-    /**
-     * 设置状态栏图标主题
-     */
     public static void setIconMode(Activity activity, boolean darkIconMode) {
-        createOsStatusBarCompat().setDarkIconMode(activity, darkIconMode);
+        OsStatusBarCompatHolder.get().setDarkIconMode(activity, darkIconMode);
     }
 
-    /**
-     * 设置状态栏图标主题
-     */
     public static void setIconMode(Window window, boolean darkIconMode) {
-        createOsStatusBarCompat().setDarkIconMode(window, darkIconMode);
+        OsStatusBarCompatHolder.get().setDarkIconMode(window, darkIconMode);
     }
 
-    /**
-     * 设置状态栏透明
-     */
-    public static void transparent(Activity activity) {
-        transparent(activity.getWindow());
+    public static boolean isTransparent(Fragment fragment) {
+        Activity activity = fragment.getActivity();
+        if (activity != null) {
+            return isTransparent(activity);
+        }
+        return false;
     }
 
-    /**
-     * 去除状态栏透明
-     */
-    public static void unTransparent(Activity activity) {
-        unTransparent(activity.getWindow());
-    }
-
-    /**
-     * 设置状态栏透明
-     */
     public static void transparent(Fragment fragment) {
         Activity activity = fragment.getActivity();
         if (activity != null) {
@@ -79,9 +55,6 @@ public class StatusBarCompat {
         }
     }
 
-    /**
-     * 去除状态栏透明
-     */
     public static void unTransparent(Fragment fragment) {
         Activity activity = fragment.getActivity();
         if (activity != null) {
@@ -89,9 +62,27 @@ public class StatusBarCompat {
         }
     }
 
-    /**
-     * 设置状态栏透明
-     */
+    public static boolean isTransparent(Activity activity) {
+        return isTransparent(activity.getWindow());
+    }
+
+    public static void transparent(Activity activity) {
+        transparent(activity.getWindow());
+    }
+
+    public static void unTransparent(Activity activity) {
+        unTransparent(activity.getWindow());
+    }
+
+    public static boolean isTransparent(Window window) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            return isTransparentStatusBarAbove21(window);
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            return isTransparentStatusBarAbove19(window);
+        }
+        return false;
+    }
+
     public static void transparent(Window window) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             transparentStatusBarAbove21(window);
@@ -100,15 +91,20 @@ public class StatusBarCompat {
         }
     }
 
-    /**
-     * 去除状态栏透明
-     */
     public static void unTransparent(Window window) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             unTransparentStatusBarAbove21(window);
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             unTransparentStatusBarAbove19(window);
         }
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private static boolean isTransparentStatusBarAbove21(Window window) {
+        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        int ui = window.getDecorView().getSystemUiVisibility();
+        final int flag = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
+        return flag == (ui & flag);
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -129,6 +125,12 @@ public class StatusBarCompat {
     }
 
     @TargetApi(Build.VERSION_CODES.KITKAT)
+    private static boolean isTransparentStatusBarAbove19(Window window) {
+        final int flag = WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS;
+        return flag == (window.getAttributes().flags & flag);
+    }
+
+    @TargetApi(Build.VERSION_CODES.KITKAT)
     private static void transparentStatusBarAbove19(Window window) {
         window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
     }
@@ -136,17 +138,5 @@ public class StatusBarCompat {
     @TargetApi(Build.VERSION_CODES.KITKAT)
     private static void unTransparentStatusBarAbove19(Window window) {
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-    }
-
-    private static OsStatusBarCompat createOsStatusBarCompat(){
-        if (OsUtils.isMiui()) {
-            return new OsStatusBarCompatMiui();
-        } else if (OsUtils.isFlyme()) {
-            return new OsStatusBarCompatFlyme();
-        } else if (OsUtils.isOppo()) {
-            return new OsStatusBarCompatOppo();
-        } else {
-            return new OsStatusBarCompatDef();
-        }
     }
 }

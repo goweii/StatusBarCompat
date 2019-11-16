@@ -1,10 +1,8 @@
 package per.goweii.statusbarcompat;
 
 import android.app.Activity;
-import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
-import android.view.View;
 import android.view.Window;
 
 /**
@@ -16,8 +14,23 @@ import android.view.Window;
 class OsStatusBarCompatDef implements OsStatusBarCompat {
 
     @Override
-    public void setDarkIconMode(@NonNull Activity activity, boolean darkIconMode) {
-        DefStatusBarUtils.setDarkIconMode(activity.getWindow(), darkIconMode);
+    public boolean isDarkIconMode(@NonNull Fragment fragment) {
+        Activity activity = fragment.getActivity();
+        if (activity == null) {
+            return false;
+        }
+        return DefStatusBarUtils.isDarkIconMode(activity.getWindow());
+
+    }
+
+    @Override
+    public boolean isDarkIconMode(@NonNull Activity activity) {
+        return DefStatusBarUtils.isDarkIconMode(activity.getWindow());
+    }
+
+    @Override
+    public boolean isDarkIconMode(@NonNull Window window) {
+        return DefStatusBarUtils.isDarkIconMode(window);
     }
 
     @Override
@@ -28,20 +41,12 @@ class OsStatusBarCompatDef implements OsStatusBarCompat {
     }
 
     @Override
-    public void setDarkIconMode(@NonNull Window window, boolean darkIconMode) {
-        DefStatusBarUtils.setDarkIconMode(window, darkIconMode);
+    public void setDarkIconMode(@NonNull Activity activity, boolean darkIconMode) {
+        DefStatusBarUtils.setDarkIconMode(activity.getWindow(), darkIconMode);
     }
 
-    private static class DefStatusBarUtils {
-        private static void setDarkIconMode(Window window, boolean darkIconMode) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                int flags = window.getDecorView().getSystemUiVisibility();
-                if (darkIconMode) {
-                    window.getDecorView().setSystemUiVisibility(flags | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
-                } else {
-                    window.getDecorView().setSystemUiVisibility(flags & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
-                }
-            }
-        }
+    @Override
+    public void setDarkIconMode(@NonNull Window window, boolean darkIconMode) {
+        DefStatusBarUtils.setDarkIconMode(window, darkIconMode);
     }
 }
