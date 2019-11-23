@@ -1,2 +1,4 @@
 # StatusBarCompat
-国产Android状态栏暗亮色适配
+
+
+国产Android系统状态栏暗亮色适配，支持自动根据背景色切换暗亮色模式
