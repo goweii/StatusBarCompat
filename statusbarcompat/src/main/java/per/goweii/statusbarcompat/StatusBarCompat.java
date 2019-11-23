@@ -1,178 +1,310 @@
 package per.goweii.statusbarcompat;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.Color;
 import android.os.Build;
 import android.support.annotation.ColorInt;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowManager;
 
+import per.goweii.statusbarcompat.utils.ContextUtils;
+import per.goweii.statusbarcompat.utils.LuminanceUtils;
+import per.goweii.statusbarcompat.utils.TransparentUtils;
+
+/**
+ * @author CuiZhen
+ */
 public class StatusBarCompat {
 
-    public static void setColor(Window window, @ColorInt int color) {
+    public static int getHeight(@NonNull Context context) {
+        int resourceId = context.getResources().getIdentifier("status_bar_height", "dimen", "android");
+        try {
+            return context.getResources().getDimensionPixelSize(resourceId);
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    public static void setColor(@NonNull Fragment fragment, @ColorInt int color) {
+        Activity activity = fragment.getActivity();
+        if (activity == null) return;
+        setColor(activity, color);
+    }
+
+    public static void setColor(@NonNull Context context, @ColorInt int color) {
+        Activity activity = ContextUtils.getActivity(context);
+        if (activity == null) return;
+        setColor(activity, color);
+    }
+
+    public static void setColor(@NonNull Activity activity, @ColorInt int color) {
+        Window window = activity.getWindow();
+        if (window == null) return;
+        setColor(window, color);
+    }
+
+    public static void setColor(@NonNull Window window, @ColorInt int color) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             window.setStatusBarColor(color);
         }
     }
 
-    public static int getHeight(Context context) {
-        int resourceId = context.getResources().getIdentifier("status_bar_height", "dimen", "android");
-        if (resourceId > 0) {
-            return context.getResources().getDimensionPixelSize(resourceId);
+    public static boolean isBgLight(@NonNull Fragment fragment) {
+        Activity activity = fragment.getActivity();
+        if (activity == null) return false;
+        return isBgLight(activity);
+    }
+
+    public static boolean isBgLight(@NonNull Context context) {
+        Activity activity = ContextUtils.getActivity(context);
+        if (activity == null) return false;
+        return isBgLight(activity);
+    }
+
+    public static boolean isBgLight(@NonNull Activity activity) {
+        Window window = activity.getWindow();
+        if (window == null) return false;
+        return isBgLight(window);
+    }
+
+    public static boolean isBgLight(@NonNull Window window) {
+        return LuminanceUtils.isLight(calcBgLuminance(window));
+    }
+
+    public static double calcBgLuminance(@NonNull Fragment fragment) {
+        Activity activity = fragment.getActivity();
+        if (activity == null) return 0;
+        return calcBgLuminance(activity);
+    }
+
+    public static double calcBgLuminance(@NonNull Context context) {
+        Activity activity = ContextUtils.getActivity(context);
+        if (activity == null) return 0;
+        return calcBgLuminance(activity);
+    }
+
+    public static double calcBgLuminance(@NonNull Activity activity) {
+        Window window = activity.getWindow();
+        if (window == null) return 0;
+        return calcBgLuminance(window);
+    }
+
+    public static double calcBgLuminance(@NonNull Window window) {
+        if (StatusBarCompat.isTransparent(window)) {
+            return LuminanceUtils.calcLuminanceByCapture(window);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            return LuminanceUtils.calcLuminance(window.getStatusBarColor());
         }
         return 0;
     }
 
-    public static boolean isIconDark(Fragment fragment) {
-        return OsStatusBarCompatHolder.get().isDarkIconMode(fragment);
+    public static boolean isIconDark(@NonNull Fragment fragment) {
+        return OsCompatHolder.get().isDarkIconMode(fragment);
     }
 
-    public static boolean isIconDark(Activity activity) {
-        return OsStatusBarCompatHolder.get().isDarkIconMode(activity);
+    public static boolean isIconDark(@NonNull Context context) {
+        Activity activity = ContextUtils.getActivity(context);
+        if (activity == null) return false;
+        return OsCompatHolder.get().isDarkIconMode(activity);
     }
 
-    public static boolean isIconDark(Window window) {
-        return OsStatusBarCompatHolder.get().isDarkIconMode(window);
+    public static boolean isIconDark(@NonNull Activity activity) {
+        return OsCompatHolder.get().isDarkIconMode(activity);
     }
 
-    public static void setIconMode(Fragment fragment, boolean darkIconMode) {
-        OsStatusBarCompatHolder.get().setDarkIconMode(fragment, darkIconMode);
+    public static boolean isIconDark(@NonNull Window window) {
+        return OsCompatHolder.get().isDarkIconMode(window);
     }
 
-    public static void setIconMode(Activity activity, boolean darkIconMode) {
-        OsStatusBarCompatHolder.get().setDarkIconMode(activity, darkIconMode);
+    public static void registerToAutoChangeIconMode(@NonNull Fragment fragment) {
+        Activity activity = fragment.getActivity();
+        if (activity == null) return;
+        registerToAutoChangeIconMode(activity);
     }
 
-    public static void setIconMode(Window window, boolean darkIconMode) {
-        OsStatusBarCompatHolder.get().setDarkIconMode(window, darkIconMode);
+    public static void registerToAutoChangeIconMode(@NonNull Context context) {
+        Activity activity = ContextUtils.getActivity(context);
+        if (activity == null) return;
+        registerToAutoChangeIconMode(activity);
     }
 
-    public static void setIconDark(Fragment fragment) {
+    public static void registerToAutoChangeIconMode(@NonNull Activity activity) {
+        Window window = activity.getWindow();
+        if (window == null) return;
+        registerToAutoChangeIconMode(window);
+    }
+
+    public static void registerToAutoChangeIconMode(final @NonNull Window window) {
+        final View decorView = window.getDecorView();
+        Object tag = decorView.getTag();
+        if (tag instanceof ViewTreeObserver.OnPreDrawListener) {
+            return;
+        }
+        final ViewTreeObserver.OnPreDrawListener onPreDrawListener = new ViewTreeObserver.OnPreDrawListener() {
+            @Override
+            public boolean onPreDraw() {
+                setIconModeAuto(window);
+                return true;
+            }
+        };
+        decorView.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+            @Override
+            public void onViewAttachedToWindow(View v) {
+            }
+
+            @Override
+            public void onViewDetachedFromWindow(View v) {
+                decorView.removeOnAttachStateChangeListener(this);
+                decorView.getViewTreeObserver().removeOnPreDrawListener(onPreDrawListener);
+            }
+        });
+        decorView.getViewTreeObserver().addOnPreDrawListener(onPreDrawListener);
+        decorView.setTag(onPreDrawListener);
+    }
+
+    public static void setIconModeAuto(@NonNull Fragment fragment) {
+        setIconMode(fragment, isBgLight(fragment));
+    }
+
+    public static void setIconModeAuto(@NonNull Context context) {
+        setIconMode(context, isBgLight(context));
+    }
+
+    public static void setIconModeAuto(@NonNull Activity activity) {
+        setIconMode(activity, isBgLight(activity));
+    }
+
+    public static void setIconModeAuto(@NonNull Window window) {
+        setIconMode(window, isBgLight(window));
+    }
+
+    public static void setIconMode(@NonNull Fragment fragment, boolean darkIconMode) {
+        OsCompatHolder.get().setDarkIconMode(fragment, darkIconMode);
+    }
+
+    public static void setIconMode(@NonNull Context context, boolean darkIconMode) {
+        Activity activity = ContextUtils.getActivity(context);
+        if (activity == null) return;
+        OsCompatHolder.get().setDarkIconMode(activity, darkIconMode);
+    }
+
+    public static void setIconMode(@NonNull Activity activity, boolean darkIconMode) {
+        OsCompatHolder.get().setDarkIconMode(activity, darkIconMode);
+    }
+
+    public static void setIconMode(@NonNull Window window, boolean darkIconMode) {
+        OsCompatHolder.get().setDarkIconMode(window, darkIconMode);
+    }
+
+    public static void setIconDark(@NonNull Fragment fragment) {
         setIconMode(fragment, true);
     }
 
-    public static void setIconDark(Activity activity) {
+    public static void setIconDark(@NonNull Context context) {
+        setIconMode(context, true);
+    }
+
+    public static void setIconDark(@NonNull Activity activity) {
         setIconMode(activity, true);
     }
 
-    public static void setIconDark(Window window) {
+    public static void setIconDark(@NonNull Window window) {
         setIconMode(window, true);
     }
 
-    public static void setIconLight(Fragment fragment) {
+    public static void setIconLight(@NonNull Fragment fragment) {
         setIconMode(fragment, false);
     }
 
-    public static void setIconLight(Activity activity) {
+    public static void setIconLight(@NonNull Context context) {
+        setIconMode(context, false);
+    }
+
+    public static void setIconLight(@NonNull Activity activity) {
         setIconMode(activity, false);
     }
 
-    public static void setIconLight(Window window) {
+    public static void setIconLight(@NonNull Window window) {
         setIconMode(window, false);
     }
 
-    public static boolean isTransparent(Fragment fragment) {
+    public static boolean isTransparent(@NonNull Fragment fragment) {
         Activity activity = fragment.getActivity();
-        if (activity != null) {
-            return isTransparent(activity);
-        }
-        return false;
+        if (activity == null) return false;
+        return isTransparent(activity);
     }
 
-    public static boolean isTransparent(Activity activity) {
+    public static boolean isTransparent(@NonNull Context context) {
+        Activity activity = ContextUtils.getActivity(context);
+        if (activity == null) return false;
+        return isTransparent(activity);
+    }
+
+    public static boolean isTransparent(@NonNull Activity activity) {
         return isTransparent(activity.getWindow());
     }
 
-    public static boolean isTransparent(Window window) {
+    public static boolean isTransparent(@NonNull Window window) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            return isTransparentStatusBarAbove21(window);
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            return isTransparentStatusBarAbove19(window);
+            return TransparentUtils.isTransparentStatusBarAbove21(window);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            return TransparentUtils.isTransparentStatusBarAbove19(window);
         }
         return false;
     }
 
-    public static void transparent(Fragment fragment) {
+    public static void transparent(@NonNull Fragment fragment) {
         Activity activity = fragment.getActivity();
-        if (activity != null) {
-            transparent(activity);
-        }
+        if (activity == null) return;
+        transparent(activity);
     }
 
-    public static void transparent(Activity activity) {
+    public static void transparent(@NonNull Context context) {
+        Activity activity = ContextUtils.getActivity(context);
+        if (activity == null) return;
+        transparent(activity);
+    }
+
+    public static void transparent(@NonNull Activity activity) {
         transparent(activity.getWindow());
     }
 
-    public static void transparent(Window window) {
+    public static void transparent(@NonNull Window window) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            transparentStatusBarAbove21(window);
+            TransparentUtils.transparentStatusBarAbove21(window);
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            transparentStatusBarAbove19(window);
+            TransparentUtils.transparentStatusBarAbove19(window);
         }
     }
 
-    public static void unTransparent(Fragment fragment) {
+    public static void unTransparent(@NonNull Fragment fragment) {
         Activity activity = fragment.getActivity();
-        if (activity != null) {
-            unTransparent(activity);
-        }
+        if (activity == null) return;
+        unTransparent(activity);
     }
 
-    public static void unTransparent(Activity activity) {
+    public static void unTransparent(@NonNull Context context) {
+        Activity activity = ContextUtils.getActivity(context);
+        if (activity == null) return;
+        unTransparent(activity);
+    }
+
+    public static void unTransparent(@NonNull Activity activity) {
         unTransparent(activity.getWindow());
     }
 
-    public static void unTransparent(Window window) {
+    public static void unTransparent(@NonNull Window window) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            unTransparentStatusBarAbove21(window);
+            TransparentUtils.unTransparentStatusBarAbove21(window);
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            unTransparentStatusBarAbove19(window);
+            TransparentUtils.unTransparentStatusBarAbove19(window);
         }
-    }
-
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private static boolean isTransparentStatusBarAbove21(Window window) {
-        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-        int ui = window.getDecorView().getSystemUiVisibility();
-        final int flag = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
-        return flag == (ui & flag);
-    }
-
-    @TargetApi(Build.VERSION_CODES.KITKAT)
-    private static boolean isTransparentStatusBarAbove19(Window window) {
-        final int flag = WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS;
-        return flag == (window.getAttributes().flags & flag);
-    }
-
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private static void transparentStatusBarAbove21(Window window) {
-        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-        window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
-        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-        window.setStatusBarColor(Color.TRANSPARENT);
-    }
-
-    @TargetApi(Build.VERSION_CODES.KITKAT)
-    private static void transparentStatusBarAbove19(Window window) {
-        window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-    }
-
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private static void unTransparentStatusBarAbove21(Window window) {
-        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-        int ui = window.getDecorView().getSystemUiVisibility();
-        ui = ui & ~(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
-        window.getDecorView().setSystemUiVisibility(ui);
-        window.clearFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-    }
-
-    @TargetApi(Build.VERSION_CODES.KITKAT)
-    private static void unTransparentStatusBarAbove19(Window window) {
-        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
     }
 }

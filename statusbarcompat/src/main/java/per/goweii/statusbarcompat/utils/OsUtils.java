@@ -1,4 +1,4 @@
-package per.goweii.statusbarcompat;
+package per.goweii.statusbarcompat.utils;
 
 import android.os.Build;
 import android.text.TextUtils;
@@ -7,7 +7,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-class OsUtils {
+public class OsUtils {
     private static final String ROM_MIUI = "MIUI";
     private static final String ROM_EMUI = "EMUI";
     private static final String ROM_FLYME = "FLYME";

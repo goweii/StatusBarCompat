@@ -1,6 +1,7 @@
-package per.goweii.statusbarcompat;
+package per.goweii.statusbarcompat.utils;
 
 import android.os.Build;
+import android.support.annotation.NonNull;
 import android.view.View;
 import android.view.Window;
 
@@ -11,9 +12,9 @@ import android.view.Window;
  * E-mail: goweii@163.com
  * GitHub: https://github.com/goweii
  */
-class DefStatusBarUtils {
+public class DarkModeUtils {
 
-    static boolean isDarkIconMode(Window window) {
+    public static boolean isDarkIconMode(@NonNull Window window) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             int ui = window.getDecorView().getSystemUiVisibility();
             final int flag = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
@@ -22,7 +23,7 @@ class DefStatusBarUtils {
         return false;
     }
 
-    static void setDarkIconMode(Window window, boolean darkIconMode) {
+    public static void setDarkIconMode(@NonNull Window window, boolean darkIconMode) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             int ui = window.getDecorView().getSystemUiVisibility();
             if (darkIconMode) {

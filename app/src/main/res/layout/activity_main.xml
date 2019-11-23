@@ -3,39 +3,45 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
-    android:background="@drawable/ic_launcher_background"
     android:gravity="center"
     android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <android.support.v7.widget.SwitchCompat
-        android:id="@+id/sc_status_bar_translation"
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#fff"
-        android:padding="15dp"
-        android:text="切换沉浸模式" />
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:orientation="vertical"
+        tools:context=".MainActivity">
 
-    <TextView
-        android:id="@+id/tv_status_bar_is_translation"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="非沉浸"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
-    <android.support.v7.widget.SwitchCompat
-        android:id="@+id/sc_status_bar_dark_icon"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
-        android:background="#fff"
-        android:padding="15dp"
-        android:text="切换状态栏图标暗色" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="2000dp"
+                android:background="@mipmap/bg3"/>
 
-    <TextView
-        android:id="@+id/tv_status_bar_is_dark"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="亮色"/>
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="2000dp"
+                android:background="@mipmap/bg1"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="2000dp"
+                android:background="@mipmap/bg2"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="2000dp"
+                android:background="#111111"/>
+
+        </LinearLayout>
+
+    </ScrollView>
 
 </LinearLayout>

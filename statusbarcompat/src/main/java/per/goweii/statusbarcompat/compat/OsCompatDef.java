@@ -1,9 +1,11 @@
-package per.goweii.statusbarcompat;
+package per.goweii.statusbarcompat.compat;
 
 import android.app.Activity;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.view.Window;
+
+import per.goweii.statusbarcompat.utils.DarkModeUtils;
 
 /**
  * 描述：
@@ -11,7 +13,7 @@ import android.view.Window;
  * @author Cuizhen
  * @date 2019/3/1
  */
-class OsStatusBarCompatDef implements OsStatusBarCompat {
+public class OsCompatDef implements OsCompat {
 
     @Override
     public boolean isDarkIconMode(@NonNull Fragment fragment) {
@@ -19,34 +21,43 @@ class OsStatusBarCompatDef implements OsStatusBarCompat {
         if (activity == null) {
             return false;
         }
-        return DefStatusBarUtils.isDarkIconMode(activity.getWindow());
-
+        return isDarkIconMode(activity);
     }
 
     @Override
     public boolean isDarkIconMode(@NonNull Activity activity) {
-        return DefStatusBarUtils.isDarkIconMode(activity.getWindow());
+        Window window = activity.getWindow();
+        if (window == null) {
+            return false;
+        }
+        return isDarkIconMode(window);
     }
 
     @Override
     public boolean isDarkIconMode(@NonNull Window window) {
-        return DefStatusBarUtils.isDarkIconMode(window);
+        return DarkModeUtils.isDarkIconMode(window);
     }
 
     @Override
     public void setDarkIconMode(@NonNull Fragment fragment, boolean darkIconMode) {
-        if (fragment.getActivity() != null) {
-            DefStatusBarUtils.setDarkIconMode(fragment.getActivity().getWindow(), darkIconMode);
+        Activity activity = fragment.getActivity();
+        if (activity == null) {
+            return;
         }
+        setDarkIconMode(activity, darkIconMode);
     }
 
     @Override
     public void setDarkIconMode(@NonNull Activity activity, boolean darkIconMode) {
-        DefStatusBarUtils.setDarkIconMode(activity.getWindow(), darkIconMode);
+        Window window = activity.getWindow();
+        if (window == null) {
+            return;
+        }
+        setDarkIconMode(window, darkIconMode);
     }
 
     @Override
     public void setDarkIconMode(@NonNull Window window, boolean darkIconMode) {
-        DefStatusBarUtils.setDarkIconMode(window, darkIconMode);
+        DarkModeUtils.setDarkIconMode(window, darkIconMode);
     }
 }

@@ -1,4 +1,4 @@
-package per.goweii.statusbarcompat;
+package per.goweii.statusbarcompat.compat;
 
 import android.app.Activity;
 import android.os.Build;
@@ -10,20 +10,23 @@ import android.view.WindowManager;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
+import per.goweii.statusbarcompat.utils.DarkModeUtils;
+
 /**
  * 描述：
  *
  * @author Cuizhen
  * @date 2019/3/1
  */
-class OsStatusBarCompatFlyme implements OsStatusBarCompat {
+public class OsCompatFlyme implements OsCompat {
 
     @Override
     public boolean isDarkIconMode(@NonNull Fragment fragment) {
-        if (fragment.getActivity() != null) {
-           return FlymeStatusBarUtils.isStatusBarDarkIcon(fragment.getActivity());
+        Activity activity = fragment.getActivity();
+        if (activity == null) {
+            return false;
         }
-        return false;
+        return FlymeStatusBarUtils.isStatusBarDarkIcon(activity);
     }
 
     @Override
@@ -38,9 +41,11 @@ class OsStatusBarCompatFlyme implements OsStatusBarCompat {
 
     @Override
     public void setDarkIconMode(@NonNull Fragment fragment, boolean darkIconMode) {
-        if (fragment.getActivity() != null) {
-            FlymeStatusBarUtils.setStatusBarDarkIcon(fragment.getActivity(), darkIconMode);
+        Activity activity = fragment.getActivity();
+        if (activity == null) {
+            return;
         }
+        FlymeStatusBarUtils.setStatusBarDarkIcon(activity, darkIconMode);
     }
 
     @Override
@@ -67,7 +72,7 @@ class OsStatusBarCompatFlyme implements OsStatusBarCompat {
             }
         }
 
-        private static boolean isStatusBarDarkIcon(Activity activity){
+        private static boolean isStatusBarDarkIcon(Activity activity) {
             return isStatusBarDarkIcon(activity.getWindow());
         }
 
@@ -83,9 +88,9 @@ class OsStatusBarCompatFlyme implements OsStatusBarCompat {
             }
         }
 
-        private static boolean isStatusBarDarkIcon(Window window){
+        private static boolean isStatusBarDarkIcon(Window window) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                return DefStatusBarUtils.isDarkIconMode(window);
+                return DarkModeUtils.isDarkIconMode(window);
             } else {
                 return isMeizuStatusBarDarkIcon(window.getAttributes());
             }
@@ -93,7 +98,7 @@ class OsStatusBarCompatFlyme implements OsStatusBarCompat {
 
         private static void setStatusBarDarkIcon(Window window, boolean dark) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                DefStatusBarUtils.setDarkIconMode(window, dark);
+                DarkModeUtils.setDarkIconMode(window, dark);
             } else {
                 setMeizuStatusBarDarkIcon(window.getAttributes(), dark);
             }

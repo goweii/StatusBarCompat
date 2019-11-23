@@ -1,11 +1,12 @@
-package per.goweii.statusbarcompat;
+package per.goweii.statusbarcompat.compat;
 
 import android.app.Activity;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
-import android.view.View;
 import android.view.Window;
+
+import per.goweii.statusbarcompat.utils.DarkModeUtils;
 
 /**
  * 描述：
@@ -13,19 +14,24 @@ import android.view.Window;
  * @author Cuizhen
  * @date 2019/3/1
  */
-class OsStatusBarCompatOppo implements OsStatusBarCompat {
+public class OsCompatOppo implements OsCompat {
 
     @Override
     public boolean isDarkIconMode(@NonNull Fragment fragment) {
-        if (fragment.getActivity() != null) {
-            isDarkIconMode(fragment.getActivity());
+        Activity activity = fragment.getActivity();
+        if (activity == null) {
+            return false;
         }
-        return false;
+        return isDarkIconMode(activity);
     }
 
     @Override
     public boolean isDarkIconMode(@NonNull Activity activity) {
-        return isDarkIconMode(activity.getWindow());
+        Window window = activity.getWindow();
+        if (window == null) {
+            return false;
+        }
+        return isDarkIconMode(window);
     }
 
     @Override
@@ -35,14 +41,20 @@ class OsStatusBarCompatOppo implements OsStatusBarCompat {
 
     @Override
     public void setDarkIconMode(@NonNull Fragment fragment, boolean darkIconMode) {
-        if (fragment.getActivity() != null) {
-            setDarkIconMode(fragment.getActivity(), darkIconMode);
+        Activity activity = fragment.getActivity();
+        if (activity == null) {
+            return;
         }
+        setDarkIconMode(activity, darkIconMode);
     }
 
     @Override
     public void setDarkIconMode(@NonNull Activity activity, boolean darkIconMode) {
-        setDarkIconMode(activity.getWindow(), darkIconMode);
+        Window window = activity.getWindow();
+        if (window == null) {
+            return;
+        }
+        setDarkIconMode(window, darkIconMode);
     }
 
     @Override
@@ -56,7 +68,7 @@ class OsStatusBarCompatOppo implements OsStatusBarCompat {
 
         private static boolean isDarkIconMode(Window window) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                return DefStatusBarUtils.isDarkIconMode(window);
+                return DarkModeUtils.isDarkIconMode(window);
             } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 int vis = window.getDecorView().getSystemUiVisibility();
                 return SYSTEM_UI_FLAG_OP_STATUS_BAR_TINT == (SYSTEM_UI_FLAG_OP_STATUS_BAR_TINT & vis);
@@ -66,7 +78,7 @@ class OsStatusBarCompatOppo implements OsStatusBarCompat {
 
         private static void setDarkIconMode(Window window, boolean darkMode) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                DefStatusBarUtils.setDarkIconMode(window, darkMode);
+                DarkModeUtils.setDarkIconMode(window, darkMode);
             } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 int vis = window.getDecorView().getSystemUiVisibility();
                 if (darkMode) {

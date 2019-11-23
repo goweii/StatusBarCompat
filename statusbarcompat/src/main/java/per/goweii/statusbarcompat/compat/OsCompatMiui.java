@@ -1,4 +1,4 @@
-package per.goweii.statusbarcompat;
+package per.goweii.statusbarcompat.compat;
 
 import android.app.Activity;
 import android.os.Build;
@@ -9,25 +9,32 @@ import android.view.Window;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
+import per.goweii.statusbarcompat.utils.DarkModeUtils;
+
 /**
  * 描述：
  *
  * @author Cuizhen
  * @date 2019/3/1
  */
-class OsStatusBarCompatMiui implements OsStatusBarCompat {
+public class OsCompatMiui implements OsCompat {
 
     @Override
     public boolean isDarkIconMode(@NonNull Fragment fragment) {
-        if (fragment.getActivity() != null) {
-            isDarkIconMode(fragment.getActivity());
+        Activity activity = fragment.getActivity();
+        if (activity == null) {
+            return false;
         }
-        return false;
+        return isDarkIconMode(activity);
     }
 
     @Override
     public boolean isDarkIconMode(@NonNull Activity activity) {
-        return isDarkIconMode(activity.getWindow());
+        Window window = activity.getWindow();
+        if (window == null) {
+            return false;
+        }
+        return isDarkIconMode(window);
     }
 
     @Override
@@ -37,14 +44,20 @@ class OsStatusBarCompatMiui implements OsStatusBarCompat {
 
     @Override
     public void setDarkIconMode(@NonNull Fragment fragment, boolean darkIconMode) {
-        if (fragment.getActivity() != null) {
-            setDarkIconMode(fragment.getActivity(), darkIconMode);
+        Activity activity = fragment.getActivity();
+        if (activity == null) {
+            return;
         }
+        setDarkIconMode(activity, darkIconMode);
     }
 
     @Override
     public void setDarkIconMode(@NonNull Activity activity, boolean darkIconMode) {
-        setDarkIconMode(activity.getWindow(), darkIconMode);
+        Window window = activity.getWindow();
+        if (window == null) {
+            return;
+        }
+        setDarkIconMode(window, darkIconMode);
     }
 
     @Override
@@ -56,7 +69,7 @@ class OsStatusBarCompatMiui implements OsStatusBarCompat {
 
         private static boolean isDarkIconMode(Window window) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                return DefStatusBarUtils.isDarkIconMode(window);
+                return DarkModeUtils.isDarkIconMode(window);
             } else {
                 return isMiuiDarkIconMode(window);
             }
@@ -79,7 +92,7 @@ class OsStatusBarCompatMiui implements OsStatusBarCompat {
 
         private static void setDarkIconMode(Window window, boolean darkIconMode) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                DefStatusBarUtils.setDarkIconMode(window, darkIconMode);
+                DarkModeUtils.setDarkIconMode(window, darkIconMode);
             } else {
                 setMiuiDarkIconMode(window, darkIconMode);
             }
