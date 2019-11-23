@@ -1,8 +1,8 @@
 # Created by .ignore support plugin (hsz.mobi)
 ### Android template
 # Built application files
-*.apk
 *.ap_
+output.json
 
 # Files for the ART/Dalvik VM
 *.dex
@@ -67,3 +67,5 @@ fastlane/screenshots
 fastlane/test_output
 fastlane/readme.md
 
+app/release/output.json
+statusbarcompat/src/main/res/
