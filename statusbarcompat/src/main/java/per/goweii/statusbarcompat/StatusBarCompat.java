@@ -170,6 +170,34 @@ public class StatusBarCompat {
         decorView.setTag(onPreDrawListener);
     }
 
+    public static void unregisterToAutoChangeIconMode(@NonNull Fragment fragment) {
+        Activity activity = fragment.getActivity();
+        if (activity == null) return;
+        unregisterToAutoChangeIconMode(activity);
+    }
+
+    public static void unregisterToAutoChangeIconMode(@NonNull Context context) {
+        Activity activity = ContextUtils.getActivity(context);
+        if (activity == null) return;
+        unregisterToAutoChangeIconMode(activity);
+    }
+
+    public static void unregisterToAutoChangeIconMode(@NonNull Activity activity) {
+        Window window = activity.getWindow();
+        if (window == null) return;
+        unregisterToAutoChangeIconMode(window);
+    }
+
+    public static void unregisterToAutoChangeIconMode(final @NonNull Window window) {
+        final View decorView = window.getDecorView();
+        Object tag = decorView.getTag();
+        if (tag instanceof ViewTreeObserver.OnPreDrawListener) {
+            ViewTreeObserver.OnPreDrawListener onPreDrawListener = (ViewTreeObserver.OnPreDrawListener) tag;
+            decorView.getViewTreeObserver().removeOnPreDrawListener(onPreDrawListener);
+            decorView.setTag(null);
+        }
+    }
+
     public static void setIconModeAuto(@NonNull Fragment fragment) {
         setIconMode(fragment, isBgLight(fragment));
     }
