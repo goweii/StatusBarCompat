@@ -144,7 +144,9 @@ public class StatusBarCompat {
         final View decorView = window.getDecorView();
         Object tag = decorView.getTag();
         if (tag instanceof ViewTreeObserver.OnPreDrawListener) {
-            return;
+            ViewTreeObserver.OnPreDrawListener onPreDrawListener = (ViewTreeObserver.OnPreDrawListener) tag;
+            decorView.getViewTreeObserver().removeOnPreDrawListener(onPreDrawListener);
+            decorView.setTag(null);
         }
         final ViewTreeObserver.OnPreDrawListener onPreDrawListener = new ViewTreeObserver.OnPreDrawListener() {
             @Override
