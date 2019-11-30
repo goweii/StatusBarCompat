@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="statusbarcompat_draw_for_capture" type="id" />
+</resources>

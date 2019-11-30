@@ -1,11 +1,14 @@
 package per.goweii.statusbarcompat;
 
+import android.app.ActionBar;
 import android.app.Activity;
+import android.app.Application;
 import android.content.Context;
 import android.os.Build;
 import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.Window;
@@ -122,25 +125,33 @@ public class StatusBarCompat {
         return OsCompatHolder.get().isDarkIconMode(window);
     }
 
-    public static void registerToAutoChangeIconMode(@NonNull Fragment fragment) {
+    /**
+     * 全局注册，所有Activity将默认自动切换暗亮色模式
+     * 可实现{@link AutoIconMode.Exclude}接口取消
+     */
+    public static void registerAutoIconMode(@NonNull Application application) {
+        AutoIconMode.register(application);
+    }
+
+    public static void registerAutoIconMode(@NonNull Fragment fragment) {
         Activity activity = fragment.getActivity();
         if (activity == null) return;
-        registerToAutoChangeIconMode(activity);
+        registerAutoIconMode(activity);
     }
 
-    public static void registerToAutoChangeIconMode(@NonNull Context context) {
+    public static void registerAutoIconMode(@NonNull Context context) {
         Activity activity = ContextUtils.getActivity(context);
         if (activity == null) return;
-        registerToAutoChangeIconMode(activity);
+        registerAutoIconMode(activity);
     }
 
-    public static void registerToAutoChangeIconMode(@NonNull Activity activity) {
+    public static void registerAutoIconMode(@NonNull Activity activity) {
         Window window = activity.getWindow();
         if (window == null) return;
-        registerToAutoChangeIconMode(window);
+        registerAutoIconMode(window);
     }
 
-    public static void registerToAutoChangeIconMode(final @NonNull Window window) {
+    public static void registerAutoIconMode(final @NonNull Window window) {
         final View decorView = window.getDecorView();
         Object tag = decorView.getTag();
         if (tag instanceof ViewTreeObserver.OnPreDrawListener) {
@@ -151,7 +162,16 @@ public class StatusBarCompat {
         final ViewTreeObserver.OnPreDrawListener onPreDrawListener = new ViewTreeObserver.OnPreDrawListener() {
             @Override
             public boolean onPreDraw() {
-                setIconModeAuto(window);
+                Object drawForCaptureTag = decorView.getTag(R.id.statusbarcompat_draw_for_capture);
+                if (drawForCaptureTag instanceof Boolean) {
+                    boolean drawForCapture = (boolean) drawForCaptureTag;
+                    if (drawForCapture) {
+                        decorView.setTag(R.id.statusbarcompat_draw_for_capture, false);
+                        return true;
+                    }
+                }
+                decorView.setTag(R.id.statusbarcompat_draw_for_capture, true);
+                setIconMode(window);
                 return true;
             }
         };
@@ -164,31 +184,32 @@ public class StatusBarCompat {
             public void onViewDetachedFromWindow(View v) {
                 decorView.removeOnAttachStateChangeListener(this);
                 decorView.getViewTreeObserver().removeOnPreDrawListener(onPreDrawListener);
+                StatusBarCapture.get().recycle();
             }
         });
         decorView.getViewTreeObserver().addOnPreDrawListener(onPreDrawListener);
         decorView.setTag(onPreDrawListener);
     }
 
-    public static void unregisterToAutoChangeIconMode(@NonNull Fragment fragment) {
+    public static void unregisterAutoIconMode(@NonNull Fragment fragment) {
         Activity activity = fragment.getActivity();
         if (activity == null) return;
-        unregisterToAutoChangeIconMode(activity);
+        unregisterAutoIconMode(activity);
     }
 
-    public static void unregisterToAutoChangeIconMode(@NonNull Context context) {
+    public static void unregisterAutoIconMode(@NonNull Context context) {
         Activity activity = ContextUtils.getActivity(context);
         if (activity == null) return;
-        unregisterToAutoChangeIconMode(activity);
+        unregisterAutoIconMode(activity);
     }
 
-    public static void unregisterToAutoChangeIconMode(@NonNull Activity activity) {
+    public static void unregisterAutoIconMode(@NonNull Activity activity) {
         Window window = activity.getWindow();
         if (window == null) return;
-        unregisterToAutoChangeIconMode(window);
+        unregisterAutoIconMode(window);
     }
 
-    public static void unregisterToAutoChangeIconMode(final @NonNull Window window) {
+    public static void unregisterAutoIconMode(final @NonNull Window window) {
         final View decorView = window.getDecorView();
         Object tag = decorView.getTag();
         if (tag instanceof ViewTreeObserver.OnPreDrawListener) {
@@ -198,20 +219,28 @@ public class StatusBarCompat {
         }
     }
 
-    public static void setIconModeAuto(@NonNull Fragment fragment) {
-        setIconMode(fragment, isBgLight(fragment));
+    public static boolean setIconMode(@NonNull Fragment fragment) {
+        Activity activity = fragment.getActivity();
+        if (activity == null) return false;
+        return setIconMode(activity);
     }
 
-    public static void setIconModeAuto(@NonNull Context context) {
-        setIconMode(context, isBgLight(context));
+    public static boolean setIconMode(@NonNull Context context) {
+        Activity activity = ContextUtils.getActivity(context);
+        if (activity == null) return false;
+        return setIconMode(activity);
     }
 
-    public static void setIconModeAuto(@NonNull Activity activity) {
-        setIconMode(activity, isBgLight(activity));
+    public static boolean setIconMode(@NonNull Activity activity) {
+        Window window = activity.getWindow();
+        if (window == null) return false;
+        return setIconMode(window);
     }
 
-    public static void setIconModeAuto(@NonNull Window window) {
-        setIconMode(window, isBgLight(window));
+    public static boolean setIconMode(@NonNull Window window) {
+        boolean darkIconMode = isBgLight(window);
+        setIconMode(window, darkIconMode);
+        return darkIconMode;
     }
 
     public static void setIconMode(@NonNull Fragment fragment, boolean darkIconMode) {
@@ -335,6 +364,32 @@ public class StatusBarCompat {
             TransparentUtils.unTransparentStatusBarAbove21(window);
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             TransparentUtils.unTransparentStatusBarAbove19(window);
+        }
+    }
+
+    public static void hideActionBar(@NonNull Fragment fragment) {
+        Activity activity = fragment.getActivity();
+        if (activity == null) return;
+        hideActionBar(activity);
+    }
+
+    public static void hideActionBar(@NonNull Context context) {
+        Activity activity = ContextUtils.getActivity(context);
+        if (activity == null) return;
+        hideActionBar(activity);
+    }
+
+    public static void hideActionBar(@NonNull Activity activity) {
+        ActionBar actionBar = activity.getActionBar();
+        if (actionBar != null) {
+            actionBar.hide();
+        }
+        if (activity instanceof AppCompatActivity) {
+            AppCompatActivity appCompatActivity = (AppCompatActivity) activity;
+            android.support.v7.app.ActionBar supportActionBar = appCompatActivity.getSupportActionBar();
+            if (supportActionBar != null) {
+                supportActionBar.hide();
+            }
         }
     }
 }
