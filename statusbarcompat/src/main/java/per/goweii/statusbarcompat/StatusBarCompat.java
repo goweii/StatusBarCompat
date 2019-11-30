@@ -127,10 +127,10 @@ public class StatusBarCompat {
 
     /**
      * 全局注册，所有Activity将默认自动切换暗亮色模式
-     * 可实现{@link AutoIconMode.Exclude}接口取消
+     * 可实现{@link AutoMode.Exclude}接口取消
      */
     public static void registerAutoIconMode(@NonNull Application application) {
-        AutoIconMode.register(application);
+        AutoMode.register(application);
     }
 
     public static void registerAutoIconMode(@NonNull Fragment fragment) {

@@ -3,7 +3,6 @@ package per.goweii.statusbarcompat;
 import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewTreeObserver;
 
@@ -17,13 +16,13 @@ import java.util.List;
  * E-mail: goweii@163.com
  * GitHub: https://github.com/goweii
  */
-public class AutoIconMode {
+public class AutoMode {
 
-    private static AutoIconMode sInstance = null;
+    private static AutoMode sInstance = null;
 
     static void register(Application application) {
         if (sInstance == null) {
-            sInstance = new AutoIconMode(application);
+            sInstance = new AutoMode(application);
         }
     }
 
@@ -43,7 +42,7 @@ public class AutoIconMode {
     private final List<Target> mTargets = new ArrayList<>();
     private Target currTarget = null;
 
-    private AutoIconMode(Application application) {
+    private AutoMode(Application application) {
         Application.ActivityLifecycleCallbacks callback = new Application.ActivityLifecycleCallbacks() {
             @Override
             public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
