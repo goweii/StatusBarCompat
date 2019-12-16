@@ -5,3 +5,5 @@
 
 [DEMO](https://github.com/goweii/StatusBarCompat/raw/master/app/release/app-release.apk)
 
+
+![DEMO](https://upload-images.jianshu.io/upload_images/9231307-01332d06d9d35366.gif?imageMogr2/auto-orient/strip|imageView2/2/w/229/format/webp)
