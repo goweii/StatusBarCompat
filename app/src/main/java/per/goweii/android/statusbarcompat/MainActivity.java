@@ -15,9 +15,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         StatusBarCompat.transparent(MainActivity.this);
-        StatusBarCompat.registerAutoIconMode(this);
+        StatusBarCompat.registerRealtimeIconMode(this);
 
-        StatusBarCompat.registerAutoIconMode(getApplication());
+        StatusBarCompat.setAutoIconMode(getApplication());
         findViewById(R.id.btn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

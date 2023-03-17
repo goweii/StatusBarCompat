@@ -2,6 +2,7 @@ package per.goweii.statusbarcompat;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.view.View;
 
@@ -13,11 +14,14 @@ import android.view.View;
  * GitHub: https://github.com/goweii
  */
 public class StatusBarCapture {
+    private static volatile StatusBarCapture sInstance = null;
 
-    private static StatusBarCapture sInstance = null;
-
+    private int mStatusBarHeight = 0;
     private Bitmap mBitmap = null;
     private Canvas mCanvas = null;
+
+    private StatusBarCapture() {
+    }
 
     public static StatusBarCapture get() {
         if (sInstance == null) {
@@ -42,34 +46,53 @@ public class StatusBarCapture {
         sInstance = null;
     }
 
-    private boolean refresh(View decor) {
-        int w = decor.getMeasuredWidth();
-        if (w <= 0) return false;
-        boolean dart = false;
-        if (mBitmap == null) {
-            dart = true;
-        } else {
+    private boolean ensureBitmapCreate(@NonNull View decor) {
+        if (mStatusBarHeight == 0) {
+            mStatusBarHeight = StatusBarCompat.getHeight(decor.getContext());
+        }
+        if (mStatusBarHeight <= 0) {
+            if (mBitmap != null) {
+                mBitmap.recycle();
+                mBitmap = null;
+            }
+            mCanvas = null;
+            return false;
+        }
+        if (mBitmap != null) {
             if (mBitmap.isRecycled()) {
-                dart = true;
+                mBitmap = null;
+                mCanvas = null;
             } else {
-                if (mBitmap.getWidth() != w) {
-                    dart = true;
+                if (mBitmap.getWidth() != mStatusBarHeight || mBitmap.getHeight() != mStatusBarHeight) {
                     mBitmap.recycle();
+                    mBitmap = null;
+                    mCanvas = null;
                 }
             }
         }
-        if (dart) {
-            int h = StatusBarCompat.getHeight(decor.getContext());
-            mBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.RGB_565);
-            mCanvas = new Canvas(mBitmap);
+        if (mBitmap == null) {
+            try {
+                //noinspection SuspiciousNameCombination
+                mBitmap = Bitmap.createBitmap(mStatusBarHeight, mStatusBarHeight, Bitmap.Config.RGB_565);
+                mCanvas = new Canvas(mBitmap);
+            } catch (OutOfMemoryError ignore) {
+            }
         }
-        return true;
+        return mBitmap != null && mCanvas != null;
+    }
+
+    private boolean isViewLaidOut(@NonNull View decor) {
+        return decor.getWidth() > 0 && decor.getHeight() > 0;
     }
 
     @Nullable
-    public Bitmap capture(View decor) {
-        if (!refresh(decor)) return null;
+    public Bitmap capture(@NonNull View decor) {
+        if (!isViewLaidOut(decor)) return null;
+        if (!ensureBitmapCreate(decor)) return null;
+        mCanvas.save();
+        mCanvas.scale((float) mBitmap.getWidth() / (float) decor.getWidth(), 1.0f);
         decor.draw(mCanvas);
+        mCanvas.restore();
         return mBitmap;
     }
 

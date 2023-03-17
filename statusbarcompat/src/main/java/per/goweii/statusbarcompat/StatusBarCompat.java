@@ -1,16 +1,17 @@
 package per.goweii.statusbarcompat;
 
+import android.annotation.SuppressLint;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.os.Build;
+import android.os.Bundle;
 import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowManager;
 
@@ -24,6 +25,7 @@ import per.goweii.statusbarcompat.utils.TransparentUtils;
 public class StatusBarCompat {
 
     public static int getHeight(@NonNull Context context) {
+        @SuppressLint("InternalInsetResource")
         int resourceId = context.getResources().getIdentifier("status_bar_height", "dimen", "android");
         try {
             return context.getResources().getDimensionPixelSize(resourceId);
@@ -126,97 +128,122 @@ public class StatusBarCompat {
     }
 
     /**
-     * 全局注册，所有Activity将默认自动切换暗亮色模式
-     * 可实现{@link AutoMode.Exclude}接口取消
+     * 全局注册，所有Activity将默认实时切换暗亮色模式
+     * 可实现{@link RealtimeStatusBarIconMode.Exclude}接口取消
      */
-    public static void registerAutoIconMode(@NonNull Application application) {
-        AutoMode.register(application);
-    }
-
-    public static void registerAutoIconMode(@NonNull Fragment fragment) {
-        Activity activity = fragment.getActivity();
-        if (activity == null) return;
-        registerAutoIconMode(activity);
-    }
-
-    public static void registerAutoIconMode(@NonNull Context context) {
-        Activity activity = ContextUtils.getActivity(context);
-        if (activity == null) return;
-        registerAutoIconMode(activity);
-    }
-
-    public static void registerAutoIconMode(@NonNull Activity activity) {
-        Window window = activity.getWindow();
-        if (window == null) return;
-        registerAutoIconMode(window);
-    }
-
-    public static void registerAutoIconMode(final @NonNull Window window) {
-        final View decorView = window.getDecorView();
-        Object tag = decorView.getTag();
-        if (tag instanceof ViewTreeObserver.OnPreDrawListener) {
-            ViewTreeObserver.OnPreDrawListener onPreDrawListener = (ViewTreeObserver.OnPreDrawListener) tag;
-            decorView.getViewTreeObserver().removeOnPreDrawListener(onPreDrawListener);
-            decorView.setTag(null);
-        }
-        final ViewTreeObserver.OnPreDrawListener onPreDrawListener = new ViewTreeObserver.OnPreDrawListener() {
+    public static void registerRealtimeIconMode(@NonNull Application application) {
+        application.registerActivityLifecycleCallbacks(new SimpleActivityLifecycleCallbacks() {
             @Override
-            public boolean onPreDraw() {
-                Object drawForCaptureTag = decorView.getTag(R.id.statusbarcompat_draw_for_capture);
-                if (drawForCaptureTag instanceof Boolean) {
-                    boolean drawForCapture = (boolean) drawForCaptureTag;
-                    if (drawForCapture) {
-                        decorView.setTag(R.id.statusbarcompat_draw_for_capture, false);
-                        return true;
-                    }
+            public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+                super.onActivityCreated(activity, savedInstanceState);
+                if (activity instanceof RealtimeStatusBarIconMode.Exclude) {
+                    registerRealtimeIconMode(activity);
                 }
-                decorView.setTag(R.id.statusbarcompat_draw_for_capture, true);
-                setIconMode(window);
-                return true;
-            }
-        };
-        decorView.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
-            @Override
-            public void onViewAttachedToWindow(View v) {
             }
 
             @Override
-            public void onViewDetachedFromWindow(View v) {
-                decorView.removeOnAttachStateChangeListener(this);
-                decorView.getViewTreeObserver().removeOnPreDrawListener(onPreDrawListener);
-                StatusBarCapture.get().recycle();
+            public void onActivityDestroyed(Activity activity) {
+                super.onActivityDestroyed(activity);
+                unregisterRealtimeIconMode(activity);
             }
         });
-        decorView.getViewTreeObserver().addOnPreDrawListener(onPreDrawListener);
-        decorView.setTag(onPreDrawListener);
     }
 
-    public static void unregisterAutoIconMode(@NonNull Fragment fragment) {
+    public static void registerRealtimeIconMode(@NonNull Fragment fragment) {
         Activity activity = fragment.getActivity();
         if (activity == null) return;
-        unregisterAutoIconMode(activity);
+        registerRealtimeIconMode(activity);
     }
 
-    public static void unregisterAutoIconMode(@NonNull Context context) {
+    public static void registerRealtimeIconMode(@NonNull Context context) {
         Activity activity = ContextUtils.getActivity(context);
         if (activity == null) return;
-        unregisterAutoIconMode(activity);
+        registerRealtimeIconMode(activity);
     }
 
-    public static void unregisterAutoIconMode(@NonNull Activity activity) {
+    public static void registerRealtimeIconMode(@NonNull Activity activity) {
         Window window = activity.getWindow();
         if (window == null) return;
-        unregisterAutoIconMode(window);
+        registerRealtimeIconMode(window);
     }
 
-    public static void unregisterAutoIconMode(final @NonNull Window window) {
+    public static void registerRealtimeIconMode(final @NonNull Window window) {
         final View decorView = window.getDecorView();
-        Object tag = decorView.getTag();
-        if (tag instanceof ViewTreeObserver.OnPreDrawListener) {
-            ViewTreeObserver.OnPreDrawListener onPreDrawListener = (ViewTreeObserver.OnPreDrawListener) tag;
-            decorView.getViewTreeObserver().removeOnPreDrawListener(onPreDrawListener);
-            decorView.setTag(null);
+        Object tag = decorView.getTag(R.id.statusbarcompat_realtime_icon_mode);
+        if (tag instanceof RealtimeStatusBarIconMode) {
+            RealtimeStatusBarIconMode realtimeStatusBarIconMode = (RealtimeStatusBarIconMode) tag;
+            realtimeStatusBarIconMode.unregister();
+            decorView.setTag(R.id.statusbarcompat_realtime_icon_mode, null);
         }
+        RealtimeStatusBarIconMode realtimeStatusBarIconMode = RealtimeStatusBarIconMode.with(window);
+        realtimeStatusBarIconMode.register();
+        decorView.setTag(R.id.statusbarcompat_realtime_icon_mode, realtimeStatusBarIconMode);
+    }
+
+    public static void unregisterRealtimeIconMode(@NonNull Fragment fragment) {
+        Activity activity = fragment.getActivity();
+        if (activity == null) return;
+        unregisterRealtimeIconMode(activity);
+    }
+
+    public static void unregisterRealtimeIconMode(@NonNull Context context) {
+        Activity activity = ContextUtils.getActivity(context);
+        if (activity == null) return;
+        unregisterRealtimeIconMode(activity);
+    }
+
+    public static void unregisterRealtimeIconMode(@NonNull Activity activity) {
+        Window window = activity.getWindow();
+        if (window == null) return;
+        unregisterRealtimeIconMode(window);
+    }
+
+    public static void unregisterRealtimeIconMode(final @NonNull Window window) {
+        final View decorView = window.getDecorView();
+        Object tag = decorView.getTag(R.id.statusbarcompat_realtime_icon_mode);
+        if (tag instanceof RealtimeStatusBarIconMode) {
+            RealtimeStatusBarIconMode realtimeStatusBarIconMode = (RealtimeStatusBarIconMode) tag;
+            realtimeStatusBarIconMode.unregister();
+            decorView.setTag(R.id.statusbarcompat_realtime_icon_mode, null);
+        }
+    }
+
+    /**
+     * 全局注册，所有Activity将默认自动切换暗亮色模式
+     * 可实现{@link AutoStatusBarIconMode.Exclude}接口取消
+     */
+    public static void setAutoIconMode(@NonNull Application application) {
+        application.registerActivityLifecycleCallbacks(new SimpleActivityLifecycleCallbacks() {
+            @Override
+            public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+                super.onActivityCreated(activity, savedInstanceState);
+                if (activity instanceof AutoStatusBarIconMode.Exclude) {
+                    setAutoIconMode(activity);
+                }
+            }
+        });
+    }
+
+    public static void setAutoIconMode(@NonNull Fragment fragment) {
+        Activity activity = fragment.getActivity();
+        if (activity == null) return;
+        setAutoIconMode(activity);
+    }
+
+    public static void setAutoIconMode(@NonNull Context context) {
+        Activity activity = ContextUtils.getActivity(context);
+        if (activity == null) return;
+        setAutoIconMode(activity);
+    }
+
+    public static void setAutoIconMode(@NonNull Activity activity) {
+        Window window = activity.getWindow();
+        if (window == null) return;
+        setAutoIconMode(window);
+    }
+
+    public static void setAutoIconMode(final @NonNull Window window) {
+        AutoStatusBarIconMode.register(window);
     }
 
     public static boolean setIconMode(@NonNull Fragment fragment) {

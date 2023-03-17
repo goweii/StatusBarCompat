@@ -1,8 +1,8 @@
 package per.goweii.statusbarcompat.utils;
 
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.support.v4.graphics.ColorUtils;
-import android.util.Log;
 import android.view.Window;
 
 import per.goweii.statusbarcompat.StatusBarCapture;
@@ -27,42 +27,33 @@ public class LuminanceUtils {
     public static double calcLuminanceByCapture(Window window) {
         Bitmap bitmap = StatusBarCapture.get().capture(window.getDecorView());
         if (bitmap == null) return 0;
-        return calcBitmapLuminance(bitmap, true);
+        return calcBitmapLuminance(bitmap);
     }
 
-    private static double calcBitmapLuminance(Bitmap bitmap, boolean rough) {
+    private static double calcBitmapLuminance(Bitmap bitmap) {
         if (bitmap == null) return 0;
         if (bitmap.isRecycled()) return 0;
         int w = bitmap.getWidth();
         int h = bitmap.getHeight();
         if (w == 0 || h == 0) return 0;
-        int y_m = h / 2;
-        int light = 0, dark = 0;
-        for (int x = 0; x < w; x++) {
-            if (rough) {
-                if (x % 10 == 0) {
-                    if (isLight(bitmap.getPixel(x, y_m))) ++light;
-                    else ++dark;
-                }
-                continue;
+        int count = 0;
+        int a = 0, r = 0, g = 0, b = 0;
+        final int stepx = w / 10;
+        final int stepy = h / 4;
+        for (int y = (h % 4) / 2; y < h; y += stepy) {
+            for (int x = (w % 10) / 2; x < w; x += stepx) {
+                int color = bitmap.getPixel(x, y);
+                a += Color.alpha(color);
+                r += Color.red(color);
+                g += Color.green(color);
+                b += Color.blue(color);
+                count++;
             }
-            if (isLight(bitmap.getPixel(x, y_m))) ++light;
-            else ++dark;
-            float f = (float) x / (float) w;
-            int y_t2b = (int) (h * f);
-            int y_b2t = h - y_t2b - 1;
-            if (isLight(bitmap.getPixel(x, y_t2b))) ++light;
-            else ++dark;
-            if (isLight(bitmap.getPixel(x, y_b2t))) ++light;
-            else ++dark;
-            if (x == w / 2) for (int y = 0; y < h; y++)
-                if (isLight(bitmap.getPixel(x, y))) ++light;
-                else ++dark;
         }
-        return dark > light ? 0 : 1;
-    }
-
-    private static boolean isLight(int color) {
-        return isLight(calcLuminance(color));
+        a = a / count;
+        r = r / count;
+        g = g / count;
+        b = b / count;
+        return calcLuminance(Color.argb(a, r, g, b));
     }
 }
